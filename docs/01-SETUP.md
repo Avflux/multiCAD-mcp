@@ -58,6 +58,40 @@ Add to `%APPDATA%\Claude\claude_desktop_config.json`:
 
 **Important**: Use the full path to `.venv\Scripts\python.exe` created by `uv sync`, not the system `py`.
 
+## Antigravity IDE Integration
+
+Antigravity IDE natively detects MCP servers configured in either:
+- **Global configuration**: `%USERPROFILE%\.gemini\config\mcp_config.json`
+- **Workspace configuration**: `.agents\mcp_config.json`
+
+```json
+{
+  "mcpServers": {
+    "multiCAD": {
+      "command": "C:\\path\\to\\multiCAD-mcp\\.venv\\Scripts\\python.exe",
+      "args": ["C:\\path\\to\\multiCAD-mcp\\src\\server.py"]
+    }
+  }
+}
+```
+
+Check active servers via **Additional Options (...) > MCP Servers**.
+
+## VS Code Integration
+
+For VS Code (GitHub Copilot, Roo Code, Cline), use `.vscode/mcp.json`:
+
+```json
+{
+  "servers": {
+    "multiCAD": {
+      "command": "${workspaceFolder}/.venv/Scripts/python.exe",
+      "args": ["${workspaceFolder}/src/server.py"]
+    }
+  }
+}
+```
+
 ## Project Structure
 
 ```

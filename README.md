@@ -71,6 +71,38 @@ Add this to your `claude_desktop_config.json`:
 
 Replace `C:\path\to\multiCAD-mcp` with your actual installation path.
 
+## Setup with Antigravity IDE
+
+Antigravity IDE discovers MCP servers through `.agents/mcp_config.json` (workspace) or `~/.gemini/config/mcp_config.json` (global):
+
+```json
+{
+  "mcpServers": {
+    "multiCAD": {
+      "command": "C:\\path\\to\\multiCAD-mcp\\.venv\\Scripts\\python.exe",
+      "args": ["C:\\path\\to\\multiCAD-mcp\\src\\server.py"]
+    }
+  }
+}
+```
+
+You can view active servers in the IDE under **Additional Options (...) > MCP Servers**.
+
+## Setup with VS Code
+
+For VS Code (compatible with GitHub Copilot Chat, Roo Code, and Cline), add `.vscode/mcp.json`:
+
+```json
+{
+  "servers": {
+    "multiCAD": {
+      "command": "${workspaceFolder}/.venv/Scripts/python.exe",
+      "args": ["${workspaceFolder}/src/server.py"]
+    }
+  }
+}
+```
+
 ## Usage Examples
 
 ### Direct Tool Calls

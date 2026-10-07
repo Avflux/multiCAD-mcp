@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "multiCAD": {
+      "command": "c:\\Users\\rno\\Desktop\\APPs\\multiCAD-mcp\\.venv\\Scripts\\python.exe",
+      "args": ["c:\\Users\\rno\\Desktop\\APPs\\multiCAD-mcp\\src\\server.py"]
+    }
+  }
+}

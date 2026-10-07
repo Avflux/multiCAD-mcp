@@ -1,0 +1,14 @@
+{
+  "servers": {
+    "multiCAD": {
+      "command": "${workspaceFolder}/.venv/Scripts/python.exe",
+      "args": ["${workspaceFolder}/src/server.py"]
+    }
+  },
+  "mcpServers": {
+    "multiCAD": {
+      "command": "${workspaceFolder}/.venv/Scripts/python.exe",
+      "args": ["${workspaceFolder}/src/server.py"]
+    }
+  }
+}
