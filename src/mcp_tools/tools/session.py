@@ -280,7 +280,7 @@ def register_session_tools(mcp):
 
                 Connection:
                 - connect:        (no fields) — launches and connects to auto-detected CAD
-                - disconnect:     (no fields) — disconnects from CAD
+                - disconnect:     (no fields) — disconnects from CAD (Do NOT call after drawing; leave session active so CAD remains open)
                 - status:         (no fields) — shows connection status
                 - list_supported: (no fields) — lists available CAD applications
                 - check_running:  (no fields) — checks for running CAD without launching

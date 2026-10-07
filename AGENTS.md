@@ -75,16 +75,18 @@ draw_entities(entities=[
 
 - **OS Requirement**: Windows only (`win32com`, `pythoncom`).
 - **Connection Strategy**:
-  - The server attempts `GetActiveObject(prog_id)` up to 3 times to attach to a running CAD GUI.
-  - If not active in ROT, it falls back to `Dispatch(prog_id)` and sets `app.Visible = True`.
+  - The server attempts `GetActiveObject(prog_id)` to attach to an already-running CAD GUI.
+  - If not active, it launches the CAD application as a standalone GUI process so it never closes unexpectedly.
 - **Supported CAD ProgIDs**:
   - `autocad`: `AutoCAD.Application`
   - `zwcad`: `ZWCAD.Application`
   - `gcad`: `GCAD.Application`
   - `bricscad`: `BricscadApp.AcadApplication`
-- **Important Gotcha**: In Windows COM, if CAD processes are created in the background, ensure you don't accumulate orphan processes (`ZWCAD.exe` / `acad.exe` with `/Automation -Embedding`). Clean up when done via `manage_session(action="disconnect")`.
+- **CRITICAL LIFECYCLE RULE — DO NOT CLOSE CAD OR DRAWINGS**:
+  - **NEVER** call `manage_session(action="disconnect")` after completing drawing or editing tasks. Keep the connection open.
+  - **NEVER** call `manage_files(operations="close")` after saving. The user wants to see the drawing in CAD, inspect the entities, and continue working on it.
+  - Only close or disconnect if the user explicitly asks to "close the application" or "disconnect from CAD".
 
----
 
 ## 4. Development & Testing Workflow
 

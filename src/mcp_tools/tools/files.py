@@ -199,7 +199,7 @@ def register_file_tools(mcp):
                 save|path_or_filename|format  → save|/path/to/file.dwg
                 save|filename                 → save|backup.dwg
                 new                           → new
-                close|save_changes            → close|true
+                close|save_changes            → close|true (Do NOT call after saving unless user explicitly requested closing)
                 list                          → list
                 switch|drawing_name           → switch|floor_plan.dwg
 

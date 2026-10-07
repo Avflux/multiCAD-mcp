@@ -37,6 +37,28 @@ class ConnectionMixin:
             self, condition: Any, timeout: float = 20.0, interval: float = 0.1
         ) -> bool: ...
 
+    def _find_cad_executable(self, prog_id: str) -> Any:
+        """Attempt to locate the standalone CAD executable path from Windows Registry."""
+        try:
+            import winreg
+            from pathlib import Path
+
+            with winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, f"{prog_id}\\CLSID") as key:
+                clsid = winreg.QueryValue(key, "")
+            with winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, f"CLSID\\{clsid}\\LocalServer32") as key:
+                cmd = winreg.QueryValue(key, "")
+
+            if cmd:
+                lower_cmd = cmd.lower()
+                if ".exe" in lower_cmd:
+                    idx = lower_cmd.index(".exe") + 4
+                    exe_cand = cmd[:idx].strip().strip('"')
+                    if Path(exe_cand).is_file():
+                        return exe_cand
+        except Exception as e:
+            logger.debug(f"Could not locate CAD executable in registry for {prog_id}: {e}")
+        return None
+
     def connect(self, only_if_running: bool = False) -> bool:
         """Connect to the CAD application via COM, initializing COM for this thread.
 
@@ -95,31 +117,61 @@ class ConnectionMixin:
                     )
                     return False
 
-                logger.info(f"{self.cad_type} not active via GetActiveObject, starting/connecting via Dispatch...")
-                try:
-                    self.application = win32com.client.Dispatch(self.config.prog_id)
-                except pywintypes.com_error as com_err:
-                    error_code = com_err.args[0] if com_err.args else None
-                    if error_code == -2147221005:
-                        error_msg = (
-                            f"Invalid ProgID '{self.config.prog_id}'. "
-                            f"Either {self.cad_type.upper()} is not installed or the ProgID is incorrect. "
-                            f"Check config.json and ensure the application is installed."
-                        )
-                    else:
-                        error_msg = str(com_err)
-                    logger.error(
-                        f"Failed to create {self.cad_type} instance: {error_msg}"
-                    )
-                    raise CADConnectionError(self.cad_type, error_msg)
+                # 1. Prefer launching as a standalone GUI process so CAD does NOT run as a slave /Automation process
+                exe_path = self._find_cad_executable(self.config.prog_id)
+                if exe_path:
+                    try:
+                        import subprocess
+                        import time
 
-                self._wait_for(
-                    lambda: self.application is not None,
-                    timeout=self.config.startup_wait_time,
-                )
-                logger.info(
-                    f"{self.cad_type} instance connected/started via Dispatch"
-                )
+                        logger.info(
+                            f"Launching {self.cad_type} as standalone GUI process: {exe_path}"
+                        )
+                        subprocess.Popen([exe_path])
+                        start_time = time.time()
+                        wait_limit = min(float(self.config.startup_wait_time), 15.0)
+                        while time.time() - start_time < wait_limit:
+                            time.sleep(1.0)
+                            try:
+                                pythoncom.CoInitialize()
+                                self.application = win32com.client.GetActiveObject(self.config.prog_id)
+                                if self.application is not None:
+                                    logger.info(
+                                        f"{self.cad_type} connected via GetActiveObject after standalone launch"
+                                    )
+                                    break
+                            except Exception:
+                                continue
+                    except Exception as e:
+                        logger.debug(f"Failed standalone launch for {self.cad_type}: {e}")
+
+                # 2. Fallback to Dispatch if still not connected
+                if self.application is None:
+                    logger.info(f"{self.cad_type} not active via standalone launch, starting/connecting via Dispatch...")
+                    try:
+                        self.application = win32com.client.Dispatch(self.config.prog_id)
+                    except pywintypes.com_error as com_err:
+                        error_code = com_err.args[0] if com_err.args else None
+                        if error_code == -2147221005:
+                            error_msg = (
+                                f"Invalid ProgID '{self.config.prog_id}'. "
+                                f"Either {self.cad_type.upper()} is not installed or the ProgID is incorrect. "
+                                f"Check config.json and ensure the application is installed."
+                            )
+                        else:
+                            error_msg = str(com_err)
+                        logger.error(
+                            f"Failed to create {self.cad_type} instance: {error_msg}"
+                        )
+                        raise CADConnectionError(self.cad_type, error_msg)
+
+                    self._wait_for(
+                        lambda: self.application is not None,
+                        timeout=self.config.startup_wait_time,
+                    )
+                    logger.info(
+                        f"{self.cad_type} instance connected/started via Dispatch"
+                    )
 
             if self.application is not None:
                 # Try to make application visible (not all CAD types support this)
@@ -129,6 +181,12 @@ class ConnectionMixin:
                     logger.debug(
                         f"{self.cad_type} doesn't support Visible property or it's read-only: {e}"
                     )
+                # Ensure UserControl is True so CAD remains open after automation client disconnects
+                try:
+                    if hasattr(self.application, "UserControl"):
+                        self.application.UserControl = True
+                except Exception as e:
+                    logger.debug(f"UserControl property could not be set: {e}")
 
             # Get active document or create new
             if self.application is not None:
@@ -160,6 +218,11 @@ class ConnectionMixin:
         """Disconnect from CAD application with COM cleanup."""
         try:
             if self.application:
+                try:
+                    if hasattr(self.application, "UserControl"):
+                        self.application.UserControl = True
+                except Exception:
+                    pass
                 self.application = None
                 self.document = None
             pythoncom.CoUninitialize()
