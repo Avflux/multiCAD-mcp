@@ -11,7 +11,7 @@ Covers all non-content operations: connection lifecycle, view, and history.
 import json
 import logging
 import webbrowser
-from typing import Optional, Dict, Any, Callable, List, Tuple
+from typing import Optional, Dict, Any, Callable, List, Tuple, Union
 
 
 from core import get_supported_cads, CADConnectionError, get_config
@@ -264,14 +264,17 @@ def register_session_tools(mcp):
 
     @mcp.tool()
     def manage_session(
-        operations: str,
+        operations: Optional[Union[str, List[Dict[str, Any]], Dict[str, Any]]] = None,
+        action: Optional[str] = None,
+        **kwargs: Any,
     ) -> str:
         """
         Manage CAD session: connection, view, and history operations.
 
         Args:
-            operations: JSON array of operations. Each object must include
-                        an "action" field.
+            operations: JSON array of operations, single operation dict, or shorthand string.
+                        Each object must include an "action" field.
+            action: Optional direct action name (e.g. action="status" or action="connect").
 
                 Supported actions and their fields:
 
@@ -306,23 +309,47 @@ def register_session_tools(mcp):
         Returns:
             JSON result with per-operation status
         """
-        try:
-            ops_data = (
-                json.loads(operations) if isinstance(operations, str) else operations
-            )
-            if not isinstance(ops_data, list):
-                ops_data = [ops_data]
-        except json.JSONDecodeError as e:
-            return json.dumps(
-                {
-                    "success": False,
-                    "error": f"Invalid JSON input: {str(e)}",
-                    "total": 0,
-                    "succeeded": 0,
-                    "results": [],
-                },
-                indent=2,
-            )
+        if operations is None:
+            if action is not None:
+                ops_data = [{"action": action, **kwargs}]
+            else:
+                return json.dumps(
+                    {
+                        "success": False,
+                        "error": "Missing 'operations' or 'action' field. Supported: "
+                        + ", ".join(SESSION_DISPATCH.keys()),
+                        "total": 0,
+                        "succeeded": 0,
+                        "results": [],
+                    },
+                    indent=2,
+                )
+        elif isinstance(operations, str):
+            operations_clean = operations.strip()
+            if operations_clean.lower() in SESSION_DISPATCH:
+                ops_data = [{"action": operations_clean.lower(), **kwargs}]
+            else:
+                try:
+                    ops_data = json.loads(operations_clean)
+                    if not isinstance(ops_data, list):
+                        ops_data = [ops_data]
+                except json.JSONDecodeError as e:
+                    return json.dumps(
+                        {
+                            "success": False,
+                            "error": f"Invalid JSON input: {str(e)}",
+                            "total": 0,
+                            "succeeded": 0,
+                            "results": [],
+                        },
+                        indent=2,
+                    )
+        elif isinstance(operations, dict):
+            ops_data = [operations]
+        elif isinstance(operations, list):
+            ops_data = operations
+        else:
+            ops_data = [operations]
 
         results = []
 

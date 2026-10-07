@@ -593,17 +593,28 @@ def _split_entries(input_str: str) -> List[str]:
     return entries
 
 
-def parse_drawing_input(input_str: str) -> List[Dict[str, Any]]:
+def parse_drawing_input(input_data: Union[str, List[Any], Dict[str, Any]]) -> List[Dict[str, Any]]:
     """
-    Parse drawing entities from shorthand or JSON.
+    Parse drawing entities from shorthand, JSON string, dict, or list.
 
     Args:
-        input_str: Shorthand or JSON input
+        input_data: Shorthand string, JSON string, dict, or list of entities.
 
     Returns:
         List of entity specifications
     """
-    input_str = input_str.strip()
+    if isinstance(input_data, dict):
+        return [autocorrect_spec(input_data, "entity")]
+    if isinstance(input_data, list):
+        result = []
+        for item in input_data:
+            if isinstance(item, dict):
+                result.append(autocorrect_spec(item, "entity"))
+            elif isinstance(item, str):
+                result.append(parse_entity_shorthand(item))
+        return result
+
+    input_str = str(input_data).strip()
 
     # Detect JSON
     if input_str.startswith("[") or input_str.startswith("{"):
@@ -620,17 +631,28 @@ def parse_drawing_input(input_str: str) -> List[Dict[str, Any]]:
     return [parse_entity_shorthand(entry) for entry in entries]
 
 
-def parse_entity_ops_input(input_str: str) -> List[Dict[str, Any]]:
+def parse_entity_ops_input(input_data: Union[str, List[Any], Dict[str, Any]]) -> List[Dict[str, Any]]:
     """
-    Parse entity operations from shorthand or JSON.
+    Parse entity operations from shorthand, JSON string, dict, or list.
 
     Args:
-        input_str: Shorthand or JSON input
+        input_data: Shorthand string, JSON string, dict, or list of operations.
 
     Returns:
         List of operation specifications
     """
-    input_str = input_str.strip()
+    if isinstance(input_data, dict):
+        return [autocorrect_spec(input_data, "entity_op")]
+    if isinstance(input_data, list):
+        result = []
+        for item in input_data:
+            if isinstance(item, dict):
+                result.append(autocorrect_spec(item, "entity_op"))
+            elif isinstance(item, str):
+                result.append(parse_entity_op_shorthand(item))
+        return result
+
+    input_str = str(input_data).strip()
 
     # Detect JSON
     if input_str.startswith("[") or input_str.startswith("{"):
@@ -646,17 +668,28 @@ def parse_entity_ops_input(input_str: str) -> List[Dict[str, Any]]:
     return [parse_entity_op_shorthand(entry) for entry in entries]
 
 
-def parse_layer_ops_input(input_str: str) -> List[Dict[str, Any]]:
+def parse_layer_ops_input(input_data: Union[str, List[Any], Dict[str, Any]]) -> List[Dict[str, Any]]:
     """
-    Parse layer operations from shorthand or JSON.
+    Parse layer operations from shorthand, JSON string, dict, or list.
 
     Args:
-        input_str: Shorthand or JSON input
+        input_data: Shorthand string, JSON string, dict, or list of operations.
 
     Returns:
         List of operation specifications
     """
-    input_str = input_str.strip()
+    if isinstance(input_data, dict):
+        return [autocorrect_spec(input_data, "layer_op")]
+    if isinstance(input_data, list):
+        result = []
+        for item in input_data:
+            if isinstance(item, dict):
+                result.append(autocorrect_spec(item, "layer_op"))
+            elif isinstance(item, str):
+                result.append(parse_layer_op_shorthand(item))
+        return result
+
+    input_str = str(input_data).strip()
 
     # Detect JSON
     if input_str.startswith("[") or input_str.startswith("{"):
@@ -672,17 +705,28 @@ def parse_layer_ops_input(input_str: str) -> List[Dict[str, Any]]:
     return [parse_layer_op_shorthand(entry) for entry in entries]
 
 
-def parse_block_ops_input(input_str: str) -> List[Dict[str, Any]]:
+def parse_block_ops_input(input_data: Union[str, List[Any], Dict[str, Any]]) -> List[Dict[str, Any]]:
     """
-    Parse block operations from shorthand or JSON.
+    Parse block operations from shorthand, JSON string, dict, or list.
 
     Args:
-        input_str: Shorthand or JSON input
+        input_data: Shorthand string, JSON string, dict, or list of operations.
 
     Returns:
         List of operation specifications
     """
-    input_str = input_str.strip()
+    if isinstance(input_data, dict):
+        return [autocorrect_spec(input_data, "block_op")]
+    if isinstance(input_data, list):
+        result = []
+        for item in input_data:
+            if isinstance(item, dict):
+                result.append(autocorrect_spec(item, "block_op"))
+            elif isinstance(item, str):
+                result.append(parse_block_op_shorthand(item))
+        return result
+
+    input_str = str(input_data).strip()
 
     # Detect JSON
     if input_str.startswith("[") or input_str.startswith("{"):
@@ -698,17 +742,28 @@ def parse_block_ops_input(input_str: str) -> List[Dict[str, Any]]:
     return [parse_block_op_shorthand(entry) for entry in entries]
 
 
-def parse_file_ops_input(input_str: str) -> List[Dict[str, Any]]:
+def parse_file_ops_input(input_data: Union[str, List[Any], Dict[str, Any]]) -> List[Dict[str, Any]]:
     """
-    Parse file operations from shorthand or JSON.
+    Parse file operations from shorthand, JSON string, dict, or list.
 
     Args:
-        input_str: Shorthand or JSON input
+        input_data: Shorthand string, JSON string, dict, or list of operations.
 
     Returns:
         List of operation specifications
     """
-    input_str = input_str.strip()
+    if isinstance(input_data, dict):
+        return [autocorrect_spec(input_data, "file_op")]
+    if isinstance(input_data, list):
+        result = []
+        for item in input_data:
+            if isinstance(item, dict):
+                result.append(autocorrect_spec(item, "file_op"))
+            elif isinstance(item, str):
+                result.append(parse_file_op_shorthand(item))
+        return result
+
+    input_str = str(input_data).strip()
 
     # Detect JSON
     if input_str.startswith("[") or input_str.startswith("{"):
@@ -722,3 +777,4 @@ def parse_file_ops_input(input_str: str) -> List[Dict[str, Any]]:
 
     entries = _split_entries(input_str)
     return [parse_file_op_shorthand(entry) for entry in entries]
+

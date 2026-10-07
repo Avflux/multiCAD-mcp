@@ -16,7 +16,7 @@ SHORTHAND FORMAT (one per line):
 import json
 import logging
 import os
-from typing import Optional, Dict, Any, Callable, List, Tuple
+from typing import Optional, Dict, Any, Callable, List, Tuple, Union
 
 
 from core import get_config
@@ -188,7 +188,7 @@ def register_file_tools(mcp):
 
     @cad_tool(mcp, "manage_files")
     def manage_files(
-        operations: str,
+        operations: Union[str, List[Any], Dict[str, Any]],
     ) -> str:
         """
         Manage drawing files with one or more operations in a single call.

@@ -161,6 +161,8 @@ def register_export_tools(mcp):
         scope: str = "all",
         format: str = "json",
         filename: str = "drawing_data.xlsx",
+        operations: Any = None,
+        **kwargs: Any,
     ) -> str:
         """
         Extract or export drawing data.
@@ -175,7 +177,7 @@ def register_export_tools(mcp):
             filename: Excel filename (only used when format="excel").
                       Default: "[drawing_name]_data.xlsx" (or "drawing_data.xlsx" if unnamed).
                       Saved to the configured output directory.
-
+            operations: Optional parameter allowing operations format for consistency with other tools.
 
         Returns:
             JSON result with entity data or export status
@@ -189,6 +191,29 @@ def register_export_tools(mcp):
         Data columns: Handle, ObjectType, Layer, Color, Length, Area,
                       Radius, Circumference, Name
         """
+        if operations:
+            if isinstance(operations, str):
+                try:
+                    ops_data = json.loads(operations)
+                    if isinstance(ops_data, list) and len(ops_data) > 0 and isinstance(ops_data[0], dict):
+                        scope = ops_data[0].get("scope", scope)
+                        format = ops_data[0].get("format", format)
+                        filename = ops_data[0].get("filename", filename)
+                    elif isinstance(ops_data, dict):
+                        scope = ops_data.get("scope", scope)
+                        format = ops_data.get("format", format)
+                        filename = ops_data.get("filename", filename)
+                except Exception:
+                    pass
+            elif isinstance(operations, list) and len(operations) > 0 and isinstance(operations[0], dict):
+                scope = operations[0].get("scope", scope)
+                format = operations[0].get("format", format)
+                filename = operations[0].get("filename", filename)
+            elif isinstance(operations, dict):
+                scope = operations.get("scope", scope)
+                format = operations.get("format", format)
+                filename = operations.get("filename", filename)
+
         adapter = get_current_adapter()
         scope_lower = scope.lower()
         format_lower = format.lower()

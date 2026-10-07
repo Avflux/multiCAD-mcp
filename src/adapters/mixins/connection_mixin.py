@@ -86,16 +86,16 @@ class ConnectionMixin:
                         import time
 
                         time.sleep(0.5)
-                        continue
 
-                # Start new instance
+            # If not found via GetActiveObject
+            if self.application is None:
                 if only_if_running:
                     logger.debug(
                         f"{self.cad_type} not running and only_if_running=True. Skipping launch."
                     )
                     return False
 
-                logger.info(f"{self.cad_type} not running, starting new instance...")
+                logger.info(f"{self.cad_type} not active via GetActiveObject, starting/connecting via Dispatch...")
                 try:
                     self.application = win32com.client.Dispatch(self.config.prog_id)
                 except pywintypes.com_error as com_err:
@@ -113,22 +113,22 @@ class ConnectionMixin:
                     )
                     raise CADConnectionError(self.cad_type, error_msg)
 
-                if self.application is not None:
-                    # Try to make application visible (not all CAD types support this)
-                    try:
-                        self.application.Visible = True
-                    except (pywintypes.com_error, AttributeError) as e:
-                        logger.debug(
-                            f"{self.cad_type} doesn't support Visible property or it's read-only: {e}"
-                        )
                 self._wait_for(
                     lambda: self.application is not None,
                     timeout=self.config.startup_wait_time,
                 )
                 logger.info(
-                    f"New {self.cad_type} instance started "
-                    f"(waited {self.config.startup_wait_time}s)"
+                    f"{self.cad_type} instance connected/started via Dispatch"
                 )
+
+            if self.application is not None:
+                # Try to make application visible (not all CAD types support this)
+                try:
+                    self.application.Visible = True
+                except (pywintypes.com_error, AttributeError) as e:
+                    logger.debug(
+                        f"{self.cad_type} doesn't support Visible property or it's read-only: {e}"
+                    )
 
             # Get active document or create new
             if self.application is not None:
