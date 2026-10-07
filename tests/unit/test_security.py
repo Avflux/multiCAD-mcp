@@ -43,9 +43,29 @@ class TestPathTraversal:
             parent_dir = output_dir.parent
             traversal_path = (parent_dir / "dangerous.txt").resolve()
 
-            # Use pytest.raises with exception type only
-            with pytest.raises(Exception):  # Catch any exception
-                adapter._validate_export_path(traversal_path, output_dir)
+            mock_config_instance = MagicMock()
+            mock_config_instance.output.allow_arbitrary_paths = False
+
+            with patch("src.adapters.mixins.utility_mixin.ConfigManager") as mock_cm:
+                mock_cm.return_value.config = mock_config_instance
+                with pytest.raises(Exception):  # Catch any exception
+                    adapter._validate_export_path(traversal_path, output_dir)
+
+    def test_validate_export_path_allows_arbitrary_when_enabled(self):
+        """Test that _validate_export_path bypasses checks when allow_arbitrary_paths is True."""
+        adapter = AutoCADAdapter("autocad")
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_dir = Path(tmpdir).resolve()
+            parent_dir = output_dir.parent
+            traversal_path = (parent_dir / "dangerous.txt").resolve()
+
+            mock_config_instance = MagicMock()
+            mock_config_instance.output.allow_arbitrary_paths = True
+
+            with patch("src.adapters.mixins.utility_mixin.ConfigManager") as mock_cm:
+                mock_cm.return_value.config = mock_config_instance
+                assert adapter._validate_export_path(traversal_path, output_dir) is True
 
     def test_resolve_export_path_allows_safe_paths(self):
         """Test that resolve_export_path allows legitimate paths."""

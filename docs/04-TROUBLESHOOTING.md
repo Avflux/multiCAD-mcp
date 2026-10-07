@@ -15,8 +15,8 @@
 ### "Connection failed: AutoCAD.Application"
 
 ```powershell
-# Reinstall pywin32
-uv run python -m pip install --upgrade pywin32
+# Reinstall / upgrade pywin32 via uv
+uv pip install --upgrade pywin32
 
 # Verify COM
 uv run python -c "import win32com.client; print('OK')"
@@ -84,8 +84,7 @@ Edit `src/config.json`:
 View logs:
 ```powershell
 # Setup
-uv sync --dev
-uv run python -m pip install --upgrade pywin32
+uv sync --extra dev
 
 # Run
 uv run python src/server.py
@@ -114,8 +113,7 @@ print(f"Connected: {adapter.is_connected()}")
 ### ModuleNotFoundError
 
 ```powershell
-uv sync --dev
-uv run python -m pip install --upgrade pywin32
+uv sync --extra dev
 ```
 
 ### Execution policy error

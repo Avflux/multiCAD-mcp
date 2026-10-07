@@ -44,8 +44,12 @@ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | ie
 # Clone
 git clone https://github.com/AnCode666/multiCAD-mcp.git
 cd multiCAD-mcp
-uv sync --dev
-uv run python -m pip install --upgrade pywin32
+
+# Install dependencies (creates .venv automatically with pywin32)
+uv sync
+
+# Or install with dev/testing dependencies:
+uv sync --extra dev
 ```
 
 ## Setup with Claude Desktop
@@ -204,9 +208,10 @@ The dashboard provides a real-time view of the CAD state. You can manually refre
 
 - [**Setup & Installation**](docs/01-SETUP.md) - detailed setup guide and Claude Desktop integration.
 - [**Architecture**](docs/02-ARCHITECTURE.md) - system design and extension guide.
+- [**Changelog**](docs/03-CHANGELOG.md) - version history.
 - [**Troubleshooting**](docs/04-TROUBLESHOOTING.md) - solutions for common issues.
 - [**Reference**](docs/05-REFERENCE.md) - complete MCP tool reference.
-- [**Changelog**](docs/07-CHANGELOG.md) - version history.
+- [**Web Dashboard**](docs/06-WEB-DASHBOARD.md) - web interface for real-time CAD monitoring.
 
 ## Supported CAD Applications
 

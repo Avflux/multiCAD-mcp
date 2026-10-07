@@ -25,9 +25,11 @@ For other methods or platforms, see the [official uv installation guide](https:/
 git clone https://github.com/AnCode666/multiCAD-mcp.git
 cd multiCAD-mcp
 
-# Install dependencies (creates .venv automatically)
-uv sync --dev
-uv run python -m pip install --upgrade pywin32
+# Install dependencies (creates .venv automatically with pywin32)
+uv sync
+
+# Or with dev dependencies for running tests/linting:
+uv sync --extra dev
 
 # Verify
 uv run pytest tests/ -v
